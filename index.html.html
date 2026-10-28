@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mental Math Trainer - Gamified Edition</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<style>
+:root {
+  --bg-main: #0b0f19;
+  --panel-bg: rgba(30, 41, 59, 0.7);
+  --panel-border: rgba(255, 255, 255, 0.12);
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --accent: #f59e0b;
+  --accent-glow: rgba(245, 158, 11, 0.4);
+  --ok-color: #10b981;
+  --bad-color: #ef4444;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  color: var(--text-main);
+  background: var(--bg-main) radial-gradient(circle at 50% 0%, #1e1b4b 0%, #0b0f19 75%) fixed;
+  overflow-x: hidden;
+}
+
+[hidden] { display: none !important; }
+
+section:not([hidden]) { animation: fadeInUp 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.card {
+  background: var(--panel-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--panel-border);
+  border-radius: 1.25rem;
+  padding: 1.25rem;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.36);
+  transition: all 0.2s ease;
+}
+
+.chip {
+  border: 1px solid var(--panel-border);
+  border-radius: 0.85rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.chip:hover {
+  background: rgba(255, 255, 255, 0.09);
+  transform: translateY(-2px);
+}
+
+.chip.on {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+}
+
+.btn {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #fff;
+  font-weight: 800;
+  border-radius: 1rem;
+  padding: 1rem 1.5rem;
+  font-size: 1.125rem;
+  cursor: pointer;
+  border: 0;
+  box-shadow: 0 6px 20px var(--accent-glow);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: center;
+  user-select: none;
+}
+
+.btn:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 8px 25px var(--accent-glow);
+}
+
+.btn:active { transform: translateY(1px) scale(0.98); }
+
+.btn.alt {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-main);
+  border: 1px solid var(--panel-border);
+  box-shadow: none;
+}
+
+.btn.alt:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.key {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--panel-border);
+  color: var(--text-main);
+  border-radius: 1rem;
+  padding: 1rem 0;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.1s ease;
+}
+
+.key:hover { background: rgba(255, 255, 255, 0.12); }
+.key:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.2); }
+
+.st-card {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--panel-border);
+  border-radius: 1rem;
+  padding: 0.6rem 0.8rem;
+  text-align: center;
+}
+
+.st-card small { display: block; font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; tracking: 0.05em; }
+.st-card b { display: block; font-family: 'Space Grotesk', sans-serif; font-size: 1.35rem; font-weight: 700; }
+
+.bar-bg {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  width: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #10b981, #06b6d4);
+  transition: width 0.1s linear, background 0.3s ease;
+}
+
+.qh {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(2rem, 7vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.2;
+  padding: 1rem 0;
+  letter-spacing: -0.02em;
+}
+
+.ans-display {
+  min-height: 64px;
+  border-bottom: 3px solid var(--accent);
+  text-align: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0.5rem 0 1.25rem;
+  color: #fde047;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ans-display:empty::before { content: '?'; color: rgba(255, 255, 255, 0.2); }
+
+.fr {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: middle;
+  font-size: 0.8em;
+  line-height: 1.1;
+  margin: 0 0.2em;
+}
+
+.fr i { font-style: normal; padding: 0 0.2em; }
+.fr i:first-child { border-bottom: 2px solid currentColor; }
+
+.bk {
+  display: inline-block;
+  width: 1.5em;
+  height: 1em;
+  border-bottom: 4px dashed var(--accent);
+  vertical-align: baseline;
+}
+
+.card-ok {
+  border-color: var(--ok-color) !important;
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.35) !important;
+  animation: pulseOk 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-bad {
+  border-color: var(--bad-color) !important;
+  box-shadow: 0 0 25px rgba(239, 68, 68, 0.35) !important;
+  animation: shakeBad 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.flash-item {
+  animation: popIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes popIn {
+  from { transform: scale(0.6); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes pulseOk { 50% { transform: scale(1.02); } }
+@keyframes shakeBad {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-10px); }
+  40%, 80% { transform: translateX(10px); }
+}
+
+@media(prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+
+<body>
+<main class="max-w-2xl mx-auto px-4 py-6">
+
+  <!-- HOME SECTION -->
+  <section id="home">
+    <header class="mb-6 flex items-center justify-between">
+      <div>
+        <h1 class="text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-amber-400 via-purple-400 to-indigo-400">
+          MathBlitz ⚡
+        </h1>
+        <p class="text-slate-400 text-sm mt-1">Latih kecepatan aritmetika & raih combo tertinggi!</p>
+      </div>
+      <button id="sndToggle" class="chip flex items-center gap-2">
+        <span id="sndIcon">🔊</span> Suara: <span id="sndState">ON</span>
+      </button>
+    </header>
+
+    <div class="card mb-5 bg-gradient-to-r from-indigo-900/40 to-purple-900/40 border-indigo-500/30">
+      <div class="flex items-center justify-between">
+        <div>
+          <span class="text-xs font-semibold uppercase tracking-wider text-indigo-300">Statistik Utama</span>
+          <div class="text-2xl font-bold mt-1" id="hb">Rekor: 0 poin</div>
+        </div>
+        <div class="text-4xl">🏆</div>
+      </div>
+    </div>
+
+    <div id="opts" class="space-y-4"></div>
+
+    <div class="sticky bottom-4 pt-4">
+      <button class="btn w-full text-xl py-4 shadow-xl" id="go">▶ Mulai Berlatih</button>
+    </div>
+  </section>
+
+  <!-- GAME SECTION -->
+  <section id="game" hidden>
+    <div class="flex items-center justify-between gap-2 mb-3">
+      <div class="grid grid-cols-4 gap-2 flex-1">
+        <div class="st-card"><small>Skor</small><b id="sc" class="text-amber-400">0</b></div>
+        <div class="st-card"><small>Combo</small><b id="cb" class="text-purple-400">×0</b></div>
+        <div class="st-card"><small id="lvl">Soal</small><b id="lv">1</b></div>
+        <div class="st-card"><small>Waktu</small><b id="tm" class="text-emerald-400">0:00</b></div>
+      </div>
+      <button id="sndToggleGame" class="chip p-3">🔊</button>
+    </div>
+
+    <div class="space-y-1.5 mb-4">
+      <div class="bar-bg"><div id="tb" class="bar-fill"></div></div>
+      <div class="bar-bg"><div id="qb" class="bar-fill" style="background: linear-gradient(90deg, #f59e0b, #ef4444);"></div></div>
+    </div>
+
+    <div id="card" class="card my-3 text-center relative overflow-hidden min-h-[180px] flex flex-col justify-center items-center">
+      <div id="qh" class="qh"></div>
+      <div id="fb" class="w-full text-left"></div>
+    </div>
+
+    <div id="ans" class="ans-display"></div>
+
+    <div id="pad" class="grid grid-cols-4 gap-2.5"></div>
+    <div id="tf" class="grid grid-cols-2 gap-3" hidden>
+      <button class="btn py-5 text-xl" style="background: linear-gradient(135deg, #10b981, #059669);" data-tf="1">✔ Benar (B)</button>
+      <button class="btn py-5 text-xl" style="background: linear-gradient(135deg, #ef4444, #dc2626);" data-tf="0">✘ Salah (S)</button>
+    </div>
+
+    <div class="mt-4 flex justify-between items-center">
+      <button id="quit" class="text-sm text-slate-400 hover:text-white transition underline">✕ Keluar ke Menu</button>
+      <span class="text-xs text-slate-500">Gunakan Numpad / Keyboard fisik</span>
+    </div>
+  </section>
+
+  <!-- RESULTS SECTION -->
+  <section id="res" hidden></section>
+  
+  <!-- REVIEW SECTION -->
+  <section id="rev" hidden></section>
+
+</main>
+
+<script>
+const $ = s => document.querySelector(s);
+const R = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const pick = a => a[R(0, a.length - 1)];
+
+/* ===== Audio Sound Effects Synthesizer ===== */
+let AC = null;
+let soundEnabled = true;
+
+function initAudio() {
+  if (!AC) {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      AC = new AudioCtx();
+    } catch (e) {}
+  }
+}
+
+function playSound(type) {
+  if (!soundEnabled) return;
+  initAudio();
+  if (!AC) return;
+  if (AC.state === 'suspended') AC.resume();
+
+  const now = AC.currentTime;
+
+  if (type === 'click') {
+    const osc = AC.createOscillator();
+    const gain = AC.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(600, now);
+    osc.frequency.exponentialRampToValueAtTime(400, now + 0.04);
+    gain.gain.setValueAtTime(0.05, now);
+    gain.gain.linearRampToValueAtTime(0.01, now + 0.04);
+    osc.connect(gain);
+    gain.connect(AC.destination);
+    osc.start(now);
+    osc.stop(now + 0.04);
+  } 
+  else if (type === 'beep') {
+    const osc = AC.createOscillator();
+    const gain = AC.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(800, now);
+    gain.gain.setValueAtTime(0.08, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+    osc.connect(gain);
+    gain.connect(AC.destination);
+    osc.start(now);
+    osc.stop(now + 0.08);
+  }
+  else if (type === 'goBeep') {
+    const osc = AC.createOscillator();
+    const gain = AC.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(1200, now);
+    gain.gain.setValueAtTime(0.12, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+    osc.connect(gain);
+    gain.connect(AC.destination);
+    osc.start(now);
+    osc.stop(now + 0.2);
+  }
+  else if (type === 'correct') {
+    const notes = [523.25, 659.25, 783.99];
+    notes.forEach((freq, idx) => {
+      const osc = AC.createOscillator();
+      const gain = AC.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, now + idx * 0.05);
+      gain.gain.setValueAtTime(0.1, now + idx * 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.05 + 0.15);
+      osc.connect(gain);
+      gain.connect(AC.destination);
+      osc.start(now + idx * 0.05);
+      osc.stop(now + idx * 0.05 + 0.15);
+    });
+  } 
+  else if (type === 'combo') {
+    const notes = [587.33, 739.99, 880, 1174.66];
+    notes.forEach((freq, idx) => {
+      const osc = AC.createOscillator();
+      const gain = AC.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(freq, now + idx * 0.04);
+      gain.gain.setValueAtTime(0.08, now + idx * 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.04 + 0.18);
+      osc.connect(gain);
+      gain.connect(AC.destination);
+      osc.start(now + idx * 0.04);
+      osc.stop(now + idx * 0.04 + 0.18);
+    });
+  } 
+  else if (type === 'wrong') {
+    const freqs = [220, 164.81];
+    freqs.forEach((freq, idx) => {
+      const osc = AC.createOscillator();
+      const gain = AC.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+      osc.frequency.exponentialRampToValueAtTime(freq * 0.75, now + idx * 0.08 + 0.18);
+      gain.gain.setValueAtTime(0.15, now + idx * 0.08);
+      gain.gain.linearRampToValueAtTime(0.001, now + idx * 0.08 + 0.18);
+      osc.connect(gain);
+      gain.connect(AC.destination);
+      osc.start(now + idx * 0.08);
+      osc.stop(now + idx * 0.08 + 0.18);
+    });
+  }
+  else if (type === 'finish') {
+    const notes = [440, 554.37, 659.25, 880];
+    notes.forEach((freq, idx) => {
+      const osc = AC.createOscillator();
+      const gain = AC.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+      gain.gain.setValueAtTime(0.12, now + idx * 0.08);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.3);
+      osc.connect(gain);
+      gain.connect(AC.destination);
+      osc.start(now + idx * 0.08);
+      osc.stop(now + idx * 0.08 + 0.3);
+    });
+  }
+}
+
+function updateSoundUI() {
+  $('#sndState').textContent = soundEnabled ? 'ON' : 'OFF';
+  $('#sndIcon').textContent = soundEnabled ? '🔊' : '🔇';
+  $('#sndToggleGame').textContent = soundEnabled ? '🔊' : '🔇';
+}
+
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  updateSoundUI();
+  if (soundEnabled) playSound('click');
+}
+
+$('#sndToggle').onclick = toggleSound;
+$('#sndToggleGame').onclick = toggleSound;
+
+/* ===== Math & Fraction Utilities ===== */
+const ls = {
+  get: () => { try { return +localStorage.getItem('mmt_best') || 0; } catch (e) { return 0; } },
+  set: v => { try { localStorage.setItem('mmt_best', v); } catch (e) {} }
+};
+
+const g = (a, b) => b ? g(b, a % b) : Math.abs(a);
+const F = (n, d = 1) => {
+  if (d < 0) { n = -n; d = -d; }
+  const k = g(n, d) || 1;
+  return { n: n / k, d: d / k };
+};
+
+const add = (x, y) => F(x.n * y.d + y.n * x.d, x.d * y.d);
+const sub = (x, y) => F(x.n * y.d - y.n * x.d, x.d * y.d);
+const mul = (x, y) => F(x.n * y.n, x.d * y.d);
+const dv = (x, y) => F(x.n * y.d, x.d * y.n);
+const val = x => x.n / x.d;
+
+const OP = { '+': add, '-': sub, '×': mul, '÷': dv }, d = o => o === '-' ? '−' : o;
+
+const ds = (x, fl, f = 1) => fl === 'frac' && x.d !== 1 
+  ? `<span class="fr"><i>${x.n}</i><i>${x.d}</i></span>` 
+  : x.d === 1 
+    ? (x.n < 0 && !f ? `(${x.n})` : String(x.n)) 
+    : String(val(x));
+
+const tx = (x, fl, p) => {
+  const s = x.d === 1 ? String(x.n) : fl === 'frac' ? x.n + '/' + x.d : String(val(x));
+  return p && x.n < 0 ? `(${s})` : s;
+};
+
+const atx = q => q.tf 
+  ? (q.ans ? 'Benar' : 'Salah') 
+  : q.fl === 'frac' && q.ans.d !== 1 
+    ? `${q.ans.n}/${q.ans.d} (≈${+val(q.ans).toFixed(2)})` 
+    : tx(q.ans, q.fl);
+
+const hint = (op, fl) => fl === 'frac' 
+  ? (op === '+' || op === '-' ? 'Samakan penyebut, hitung pembilang, lalu sederhanakan.' : op === '×' ? 'Kalikan pembilang dengan pembilang, penyebut dengan penyebut.' : 'Bagi sama dengan kali kebalikan pecahan kedua.')
+  : fl === 'neg' ? 'Awas tanda: minus × minus = plus; mengurangi bilangan negatif sama dengan menambah.'
+  : fl === 'dec' ? 'Hitung tanpa koma, lalu geser koma kembali.'
+  : op === '×' ? 'Pecah angka: 12×7 = 10×7 + 2×7.'
+  : op === '÷' ? 'Cek: hasil × pembagi = yang dibagi.'
+  : 'Genapkan ke puluhan terdekat, lalu sesuaikan selisihnya.';
+
+const fm = s => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+
+/* ===== Config Options & Presets ===== */
+const PRE = {
+  easy: { diff: 'easy', ops: ['+', '-'], types: ['pos'], mixMode: 0, chainLen: 3, flashSpeed: 1000, adv: 0, models: ['normal'], range: 20, pq: 0 },
+  medium: { diff: 'medium', ops: ['+', '-', '×'], types: ['pos', 'neg'], mixMode: 0, chainLen: 3, flashSpeed: 1000, adv: 0, models: ['normal', 'blank'], range: 99, pq: 15 },
+  hard: { diff: 'hard', ops: ['+', '-', '×', '÷'], types: ['pos', 'neg', 'dec', 'frac', 'pct'], mixMode: 1, chainLen: 4, flashSpeed: 500, adv: 1, models: ['normal', 'chain', 'blank', 'compare'], range: 500, pq: 10 }
+};
+
+let S = { ...JSON.parse(JSON.stringify(PRE.easy)), time: 120, count: 10 }, G, TI, flashTimer = null;
+
+const GR = [
+  ['diff', 'Tingkat Kesulitan', [['easy', '🌱 Mudah'], ['medium', '🔥 Sedang'], ['hard', '💀 Sulit'], ['custom', '🛠️ Kustom']], 0],
+  ['ops', 'Operasi Aritmetika', [['+', '＋ Tambah'], ['-', '− Kurang'], ['×', '× Kali'], ['÷', '÷ Bagi']], 1],
+  ['types', 'Jenis Bilangan', [['pos', 'Bulat Positif'], ['neg', 'Bulat Negatif'], ['dec', 'Desimal'], ['pct', 'Persentase'], ['frac', 'Pecahan']], 1],
+  ['mixMode', 'Mode Penggabungan Tipe', [[0, '🎲 Acak Tipe Per Soal'], [1, '🔀 Gabung Tipe Dalam 1 Soal']], 0],
+  ['chainLen', 'Panjang Soal Berantai/Flash', [[2, '2 Angka (1 Op)'], [3, '3 Angka (2 Op)'], [4, '4 Angka (3 Op)'], [5, '5 Angka (4 Op)']], 0],
+  ['flashSpeed', 'Kecepatan Flash (Satu-Satu)', [[500, '⚡ Sangat Cepat (0.5 dtk)'], [1000, '⏱️ Sedang (1 dtk)'], [1500, '🐢 Santai (1.5 dtk)']], 0],
+  ['adv', 'Tingkat Lanjut', [[1, '🚀 Pangkat & Akar']], 2],
+  ['models', 'Model Soal', [['normal', 'Biasa'], ['chain', 'Berantai'], ['flash', '👁 Flash Anzan'], ['blank', 'Titik Kosong'], ['compare', 'Benar/Salah Cepat']], 1],
+  ['time', 'Durasi Sesi', [[60, '60 Detik'], [120, '2 Menit'], [300, '5 Menit'], [600, '10 Menit'], [900, '15 Menit'], [0, 'Stopwatch'], ['surv', 'Survival (3 Nyawa)']], 0],
+  ['pq', 'Batas Waktu Per Soal', [[0, 'Tanpa Batas'], [5, '5 Detik'], [10, '10 Detik'], [15, '15 Detik'], [30, '30 Detik'], [60, '60 Detik']], 0],
+  ['count', 'Jumlah Soal', [[10, '10'], [20, '20'], [30, '30'], [0, 'Tak Terbatas']], 0],
+  ['range', 'Rentang Angka', [[20, 'Kecil (1–20)'], [99, 'Sedang (1–99)'], [500, 'Besar (1–500)']], 0]
+];
+
+function draw() {
+  $('#hb').textContent = 'Rekor Terbaik: ' + ls.get() + ' Poin';
+  $('#opts').innerHTML = GR.map(([k, l, it, t]) => `
+    <div class="card">
+      <h3 class="font-bold text-sm tracking-wide text-slate-300 mb-2.5 flex items-center gap-2">${l}</h3>
+      <div class="flex flex-wrap gap-2">
+        ${it.map(([v, n]) => {
+          const on = t === 1 ? S[k].includes(v) : t === 2 ? S[k] : S[k] == v;
+          return `<button class="chip${on ? ' on' : ''}" data-k="${k}" data-v="${v}" data-t="${t}">${n}</button>`;
+        }).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+$('#opts').onclick = e => {
+  const b = e.target.closest('[data-k]');
+  if (!b) return;
+  playSound('click');
+  const k = b.dataset.k, x = b.dataset.v, v = isNaN(x) ? x : +x, t = b.dataset.t;
+  if (t == 1) {
+    const a = S[k], i = a.indexOf(v);
+    i >= 0 ? a.length > 1 && a.splice(i, 1) : a.push(v);
+  } else if (t == 2) {
+    S[k] = !S[k];
+  } else {
+    S[k] = v;
+  }
+  if (k === 'diff' && v !== 'custom') Object.assign(S, JSON.parse(JSON.stringify(PRE[v])));
+  else if (k !== 'diff') S.diff = 'custom';
+  draw();
+};
+
+/* ===== Problem Generators ===== */
+function genSingleExpr(fl) {
+  const M = S.range;
+  
+  if (S.adv && Math.random() < 0.25) {
+    const big = M <= 20 ? 6 : M <= 99 ? 12 : 15;
+    const kind = R(0, 3);
+    const n = kind < 2 ? R(2, big) : R(2, M <= 20 ? 4 : 8);
+    if (kind === 0) return { val: F(n * n), dispHTML: `${n}<sup>2</sup>`, type: 'pos' };
+    if (kind === 1) return { val: F(n), dispHTML: `√${n * n}`, type: 'pos' };
+    if (kind === 2) return { val: F(n ** 3), dispHTML: `${n}<sup>3</sup>`, type: 'pos' };
+    return { val: F(n), dispHTML: `∛${n ** 3}`, type: 'pos' };
+  }
+
+  if (fl === 'pct') {
+    const p = pick([10, 20, 25, 50, 75]);
+    return { val: F(p, 100), dispHTML: `${p}%`, type: 'pct' };
+  }
+  if (fl === 'frac') {
+    const q = R(2, M > 20 ? 12 : 8);
+    const n = R(1, q - 1);
+    return { val: F(n, q), dispHTML: `<span class="fr"><i>${n}</i><i>${q}</i></span>`, type: 'frac' };
+  }
+  if (fl === 'dec') {
+    const v = R(11, Math.min(M, 50) * 10) / 10;
+    return { val: F(v * 10, 10), dispHTML: String(v).replace('.', ','), type: 'dec' };
+  }
+  if (fl === 'neg') {
+    const v = -R(1, M);
+    return { val: F(v), dispHTML: `(${v})`, type: 'neg' };
+  }
+  
+  const v = R(1, M);
+  return { val: F(v), dispHTML: String(v), type: 'pos' };
+}
+
+function genSingleNum(fl) {
+  return genSingleExpr(fl).val;
+}
+
+function pair(fl, op) {
+  const M = S.range, m = Math.min(M, 12); let a, b, fa = fl, fb = fl;
+  if (S.mixMode && S.types.length > 1) {
+    fa = pick(S.types);
+    fb = pick(S.types);
+    a = genSingleNum(fa);
+    b = genSingleNum(fb);
+  } else if (fl === 'frac') {
+    const f = () => { const q = R(2, M > 20 ? 12 : 8); return F(R(1, q - 1), q); };
+    a = f(); b = f();
+  } else if (fl === 'dec') {
+    if (op === '×') { a = F(R(11, Math.min(M, 30) * 10), 10); b = F(R(2, m)); } 
+    else if (op === '÷') { b = F(R(2, m)); a = mul(F(R(2, Math.min(M, 20) * 10), 10), b); } 
+    else { a = F(R(11, Math.min(M, 50) * 10), 10); b = F(R(11, Math.min(M, 50) * 10), 10); }
+  } else {
+    if (op === '×') { a = F(R(2, Math.min(M, 99))); b = F(R(2, m)); } 
+    else if (op === '÷') { const y = R(2, m); a = F(y * R(2, Math.max(2, Math.floor(M / y)))); b = F(y); } 
+    else { a = F(R(1, M)); b = F(R(1, M)); }
+    if (fl === 'neg') {
+      const s = () => Math.random() < 0.6 ? -1 : 1;
+      let x = s(), y = s();
+      if (x + y > 0) x = -1;
+      a = F(a.n * x); b = F(b.n * y);
+    }
+  }
+  if (op === '-' && fl !== 'neg' && val(a) < val(b)) [a, b, fa, fb] = [b, a, fb, fa];
+  return [a, b, fa, fb];
+}
+
+function norm(op, fl) {
+  const [a, b, fa, fb] = pair(fl, op), r = OP[op](a, b);
+  const dispFl = (fa === 'frac' || fb === 'frac' || fl === 'frac') ? 'frac' : (fa === 'dec' || fb === 'dec' || fl === 'dec') ? 'dec' : fl;
+  return { fl: dispFl, ans: r, h: `${ds(a, fa)} ${d(op)} ${ds(b, fb, 0)} = ?`, ex: `${tx(a, fa)} ${op} ${tx(b, fb, 1)} = ${tx(r, dispFl)}. ${hint(op, dispFl)}` };
+}
+
+function blank(op, fl) {
+  const [a, b, fa, fb] = pair(fl, op), c = OP[op](a, b), hb = Math.random() < 0.5, bl = '<span class="bk"></span>';
+  const dispFl = (fa === 'frac' || fb === 'frac' || fl === 'frac') ? 'frac' : (fa === 'dec' || fb === 'dec' || fl === 'dec') ? 'dec' : fl;
+  const inv = hb ? { '+': 'c − a', '-': 'a − c', '×': 'c ÷ a', '÷': 'a ÷ c' }[op] : { '+': 'c − b', '-': 'c + b', '×': 'c ÷ b', '÷': 'c × b' }[op];
+  const ans = hb ? b : a;
+  const ansFl = hb ? fb : fa;
+  return { fl: dispFl, ans, h: hb ? `${ds(a, fa)} ${d(op)} ${bl} = ${ds(c, dispFl)}` : `${bl} ${d(op)} ${ds(b, fb, 0)} = ${ds(c, dispFl)}`, ex: `Pakai operasi kebalikan: ? = ${inv.replace(/[abc]/g, k => tx({ a, b, c }[k], dispFl, 1))} = ${tx(ans, ansFl)}.` };
+}
+
+function ev(v, o, s, fl, vTypes) {
+  const t = [v[0]], p = [];
+  for (let i = 0; i < o.length; i++) {
+    const x = v[i + 1], j = t.length - 1;
+    if (o[i] === '×') t[j] = mul(t[j], x);
+    else if (o[i] === '÷') { const r = dv(t[j], x); if (s && r.d !== 1) return; t[j] = r; }
+    else { p.push(o[i]); t.push(x); }
+  }
+  let r = t[0];
+  p.forEach((q, i) => r = (q === '+' ? add : sub)(r, t[i + 1]));
+  return { r, red: t.map((x, i) => (i ? ` ${d(p[i - 1])} ` : '') + tx(x, vTypes[i] || fl, i)).join('') };
+}
+
+function qChain(fl, isFlash = false) {
+  const k = S.chainLen || 3;
+  for (let t = 0; t < 300; t++) {
+    const o = [''], v = [], vDisps = [], vTypes = [], steps = [];
+    for (let i = 0; i < k; i++) {
+      const op = i ? pick(S.ops) : '';
+      if (i) o.push(op);
+      const currType = (S.mixMode && S.types.length > 1) ? pick(S.types) : fl;
+      const expr = genSingleExpr(currType);
+      v.push(expr.val);
+      vDisps.push(expr.dispHTML);
+      vTypes.push(expr.type);
+      steps.push((i ? d(op) + ' ' : '') + expr.dispHTML);
+    }
+    o.shift();
+    const e = ev(v, o, false, fl, vTypes);
+    const hasFrac = vTypes.includes('frac') || vTypes.includes('pct');
+    if (!e || Math.abs(val(e.r)) > 5000) continue;
+    return { 
+      fl: hasFrac ? 'frac' : (vTypes.includes('dec') ? 'dec' : fl), 
+      ans: e.r, 
+      h: vDisps.map((disp, i) => (i ? ` ${d(o[i - 1])} ` : '') + disp).join('') + ' = ?',
+      steps: steps,
+      isFlash: isFlash,
+      ex: `Urutan operasi (kali/bagi dulu, baru tambah/kurang): ${e.red} = ${tx(e.r, hasFrac ? 'frac' : fl)}.` 
+    };
+  }
+}
+
+function chain(fl) {
+  return qChain(fl, false);
+}
+
+function powq() {
+  const M = S.range, big = M <= 20 ? 12 : M <= 99 ? 20 : 25, k = R(0, 3), n = k < 2 ? R(2, big) : R(2, M <= 20 ? 5 : 10);
+  const T = [
+    [`${n}<sup>2</sup> = ?`, n * n, `${n} × ${n} = ${n * n}`],
+    [`√${n * n} = ?`, n, `${n} × ${n} = ${n * n}, jadi akarnya ${n}`],
+    [`${n}<sup>3</sup> = ?`, n ** 3, `${n} × ${n} × ${n} = ${n ** 3}`],
+    [`∛${n ** 3} = ?`, n, `${n} × ${n} × ${n} = ${n ** 3}, jadi akar pangkat tiga ${n}`]
+  ][k === 1 ? 1 : k === 0 ? 0 : k === 2 ? 2 : 3];
+  return { fl: 'pos', h: T[0], ans: F(T[1]), ex: T[2] + '.' };
+}
+
+function pctq() {
+  const M = S.range, p = pick([5, 10, 15, 20, 25, 30, 40, 50, 60, 75, 80]), N = 20 * R(1, Math.max(2, Math.floor(M / 20))), r = p * N / 100;
+  return { fl: 'pos', h: `${p}% dari ${N} = ?`, ans: F(r), ex: `${p}% = ${p}/100, maka ${p}/100 × ${N} = ${r}.` };
+}
+
+function cmp() {
+  if (S.types.some(t => t === 'frac' || t === 'dec' || t === 'pct')) {
+    for (;;) {
+      const q = R(2, 8), a = F(R(1, q - 1), q);
+      if (a.d === 1) continue;
+      const va = val(a), bv = Math.round((va + R(-15, 15) / 100) * 100) / 100;
+      if (bv <= 0 || Math.abs(bv - va) < 1e-9) continue;
+      const pc = S.types.includes('pct') && Math.random() < 0.5, bh = pc ? Math.round(bv * 100) + '%' : String(bv), gt = Math.random() < 0.5, tr = gt ? va > bv : va < bv, v3 = +va.toFixed(3);
+      return { tf: 1, ans: tr, h: `Apakah ${ds(a, 'frac')} ${gt ? '>' : '<'} ${bh}?`, ex: `${a.n}/${a.d} = ${v3}; ${bh} = ${bv}. Karena ${v3} ${va > bv ? '>' : '<'} ${bv}, pernyataan itu ${tr ? 'Benar' : 'Salah'}.` };
+    }
+  }
+  const op = pick(S.ops), [a, b] = pair('pos', op), r = OP[op](a, b).n, c = r + (R(-6, 6) || 1), gt = Math.random() < 0.5, tr = gt ? r > c : r < c;
+  return { tf: 1, ans: tr, h: `Apakah ${a.n} ${d(op)} ${b.n} ${gt ? '>' : '<'} ${c}?`, ex: `${a.n} ${op} ${b.n} = ${r}. Karena ${r} ${r > c ? '>' : '<'} ${c}, pernyataan itu ${tr ? 'Benar' : 'Salah'}.` };
+}
+
+function gen() {
+  const m = pick(S.models), op = pick(S.ops); let fl = pick(S.types);
+  if (S.adv && Math.random() < 0.25) return powq();
+  if (m === 'compare') return cmp();
+  if (fl === 'pct') { if (m === 'normal') return pctq(); fl = S.types.find(t => t !== 'pct') || 'pos'; }
+  if (m === 'chain') return qChain(fl, false);
+  if (m === 'flash') return qChain(fl, true);
+  return m === 'blank' ? blank(op, fl) : norm(op, fl);
+}
+
+/* ===== Gameplay Cycle ===== */
+const show = id => {
+  ['home', 'game', 'res', 'rev'].forEach(x => $('#' + x).hidden = x !== id);
+  scrollTo(0, 0);
+};
+
+function start() {
+  playSound('click');
+  if (flashTimer) clearTimeout(flashTimer);
+  const n = performance.now();
+  G = { n: 0, score: 0, combo: 0, maxc: 0, ok: 0, hist: [], lives: 3, t0: n, idle: 0, lock: 0, over: 0, pq: S.time === 'surv' ? (S.pq || 10) : S.pq };
+  $('#lvl').textContent = S.time === 'surv' ? 'Nyawa' : 'Soal';
+  show('game');
+  next();
+  clearInterval(TI);
+  TI = setInterval(tick, 100);
+}
+
+function stats() {
+  $('#sc').textContent = G.score;
+  $('#cb').textContent = '×' + G.combo;
+  $('#lv').textContent = S.time === 'surv' ? '♥'.repeat(G.lives) + '♡'.repeat(3 - G.lives) : G.n + (S.count ? '/' + S.count : '');
+}
+
+function next() {
+  if (flashTimer) clearTimeout(flashTimer);
+  const n = performance.now();
+  if (G.lock) G.idle += n - G.fb;
+  G.lock = 0;
+  if (S.count && G.n >= S.count) return end();
+  G.n++; G.q = gen(); G.in = ''; G.qs = n;
+  
+  $('#ans').textContent = '';
+  $('#fb').innerHTML = '';
+  $('#card').className = 'card my-3 text-center relative overflow-hidden min-h-[180px] flex flex-col justify-center items-center';
+  stats();
+
+  if (G.q.isFlash) {
+    runFlashCountdown();
+  } else {
+    $('#qh').innerHTML = G.q.h;
+    $('#pad').hidden = !!G.q.tf;
+    $('#ans').hidden = !!G.q.tf;
+    $('#tf').hidden = !G.q.tf;
+  }
+}
+
+function runFlashCountdown() {
+  G.lock = 1;
+  $('#pad').hidden = true;
+  $('#ans').hidden = true;
+  $('#tf').hidden = true;
+
+  let count = 3;
+  const updateCountdown = () => {
+    if (G.over) return;
+    if (count > 0) {
+      playSound('beep');
+      $('#qh').innerHTML = `<div class="text-amber-400 font-extrabold text-5xl animate-bounce">${count}</div><div class="text-xs text-slate-400 mt-2 font-normal uppercase tracking-wider">Bersiap...</div>`;
+      count--;
+      flashTimer = setTimeout(updateCountdown, 800);
+    } else {
+      playSound('goBeep');
+      $('#qh').innerHTML = `<div class="text-emerald-400 font-extrabold text-4xl">READY GO!</div>`;
+      flashTimer = setTimeout(runFlashSequence, 600);
+    }
+  };
+  updateCountdown();
+}
+
+function runFlashSequence() {
+  if (G.over) return;
+  const steps = G.q.steps;
+  let idx = 0;
+  const speed = S.flashSpeed || 1000;
+
+  const showStep = () => {
+    if (G.over) return;
+    if (idx < steps.length) {
+      playSound('beep');
+      $('#qh').innerHTML = `<div class="flash-item text-4xl font-extrabold text-indigo-300">${steps[idx]}</div>`;
+      idx++;
+      flashTimer = setTimeout(() => {
+        if (G.over) return;
+        $('#qh').innerHTML = '';
+        flashTimer = setTimeout(showStep, 150);
+      }, speed - 150);
+    } else {
+      playSound('goBeep');
+      G.lock = 0;
+      G.qs = performance.now();
+      $('#qh').innerHTML = `<div class="text-2xl font-bold text-amber-400">Berapa hasilnya?</div>`;
+      $('#pad').hidden = false;
+      $('#ans').hidden = false;
+    }
+  };
+  showStep();
+}
+
+function after() {
+  G.lives <= 0 && S.time === 'surv' ? end() : next();
+}
+
+const parse = u => {
+  const s = u.replace(',', '.');
+  if (s.includes('/')) {
+    const [a, b] = s.split('/');
+    return a && b ? (+a) / (+b) : NaN;
+  }
+  return s === '' || s === '-' || s === '.' ? NaN : +s;
+};
+
+function answer(u) {
+  if (G.lock || G.over) return;
+  if (flashTimer) clearTimeout(flashTimer);
+  const q = G.q, n = performance.now(), t = (n - G.qs) / 1000;
+  let ok = false, ua = '—', gain = 0;
+
+  if (u !== null) {
+    if (q.tf) { ok = u === q.ans; ua = u ? 'Benar' : 'Salah'; } 
+    else {
+      const v = parse(u);
+      if (isNaN(v)) return;
+      ua = u; ok = Math.abs(v - val(q.ans)) <= (q.fl === 'frac' ? 0.01 : 1e-6);
+    }
+  }
+
+  G.lock = 1; G.fb = n;
+
+  if (ok) {
+    G.ok++; G.combo++; G.maxc = Math.max(G.maxc, G.combo);
+    gain = 10 + (G.pq ? Math.round(5 * Math.max(0, 1 - t / G.pq)) : 0) + Math.min(G.combo - 1, 10) * 2;
+    G.score += gain;
+    playSound(G.combo > 1 ? 'combo' : 'correct');
+  } else {
+    G.combo = 0;
+    if (S.time === 'surv') G.lives--;
+    playSound('wrong');
+  }
+
+  G.hist.push({ h: q.h, ua, ca: atx(q), ok, ex: q.ex, t });
+  stats();
+
+  $('#card').className = 'card my-3 text-center relative overflow-hidden min-h-[180px] flex flex-col justify-center items-center ' + (ok ? 'card-ok' : 'card-bad');
+
+  if (ok) {
+    $('#fb').innerHTML = `<div class="text-emerald-400 font-bold text-lg text-center mt-2 animate-bounce">✔ Benar! +${gain}</div>`;
+    setTimeout(() => { if (G.q === q && G.lock && !G.over) after(); }, 650);
+  } else {
+    const last = S.time === 'surv' && G.lives <= 0;
+    $('#fb').innerHTML = `
+      <div class="w-full text-left mt-2 pt-2 border-t border-slate-700/50">
+        <b class="text-rose-400 block font-bold">${u === null ? '⏰ Waktu habis!' : '✘ Belum tepat.'}</b>
+        <div class="text-sm text-slate-300 mt-1">Jawabanmu: <span class="text-rose-300">${ua}</span> · Benar: <b class="text-emerald-400">${atx(q)}</b></div>
+        <p class="text-slate-400 text-xs my-2 leading-relaxed">${q.ex}</p>
+        <button class="btn w-full py-2.5 text-base mt-1" id="nx">${last ? 'Lihat Hasil' : 'Lanjut (Enter)'}</button>
+      </div>
+    `;
+    $('#nx').onclick = after;
+  }
+}
+
+function tick() {
+  if (!G || G.over) return;
+  const n = performance.now(), el = (n - G.t0 - G.idle - (G.lock ? n - G.fb : 0)) / 1000, T = S.time;
+  if (typeof T === 'number' && T > 0) {
+    const l = T - el;
+    $('#tm').textContent = fm(Math.max(0, l));
+    $('#tb').style.width = Math.max(0, l / T * 100) + '%';
+    if (l <= 0) return end();
+  } else $('#tm').textContent = fm(el);
+
+  if (!G.lock && G.pq) {
+    const f = 1 - (n - G.qs) / 1000 / G.pq;
+    $('#qb').style.width = Math.max(0, f * 100) + '%';
+    if (f <= 0) answer(null);
+  } else if (!G.pq) $('#qb').style.width = 0;
+}
+
+function inp(k) {
+  playSound('click');
+  if (k === '⌫') G.in = G.in.slice(0, -1);
+  else if (G.in.length < 12) {
+    if (k === '-' && G.in.length) return;
+    G.in += k === ',' ? '.' : k;
+  }
+  $('#ans').textContent = G.in;
+}
+
+/* Numpad Builder */
+$('#pad').innerHTML = ['7','8','9','⌫','4','5','6','-','1','2','3','/','0','.'].map(k => `
+  <button class="key" data-p="${k}">${k}</button>
+`).join('') + '<button class="btn col-span-2 py-3" style="background: linear-gradient(135deg, #10b981, #059669);" data-p="ok">Jawab</button>';
+
+$('#pad').onclick = e => {
+  const b = e.target.closest('[data-p]');
+  if (!b || G.lock) return;
+  b.blur();
+  b.dataset.p === 'ok' ? answer(G.in) : inp(b.dataset.p);
+};
+
+$('#tf').onclick = e => {
+  const b = e.target.closest('[data-tf]');
+  if (b) { b.blur(); answer(b.dataset.tf === '1'); }
+};
+
+addEventListener('keydown', e => {
+  if ($('#game').hidden || !G || G.over) return;
+  const k = e.key;
+  if (G.lock) { if (k === 'Enter') { e.preventDefault(); after(); } return; }
+  if (G.q.tf) {
+    const l = k.toLowerCase();
+    if (l === 'b' || l === 't') answer(true);
+    else if (l === 's' || l === 'f') answer(false);
+    return;
+  }
+  if (/^[0-9./,-]$/.test(k)) { e.preventDefault(); inp(k); }
+  else if (k === 'Backspace') inp('⌫');
+  else if (k === 'Enter') { e.preventDefault(); answer(G.in); }
+});
+
+$('#quit').onclick = () => {
+  playSound('click');
+  if (flashTimer) clearTimeout(flashTimer);
+  G.over = 1;
+  clearInterval(TI);
+  draw();
+  show('home');
+};
+
+$('#go').onclick = start;
+
+/* ===== Game Results & Review ===== */
+function end() {
+  if (G.over) return;
+  G.over = 1;
+  if (flashTimer) clearTimeout(flashTimer);
+  clearInterval(TI);
+  playSound('finish');
+  const n = performance.now(), T = S.time;
+  let el = (n - G.t0 - G.idle - (G.lock ? n - G.fb : 0)) / 1000;
+  if (typeof T === 'number' && T > 0) el = Math.min(el, T);
+
+  const h = G.hist, N = h.length, acc = N ? G.ok / N : 0, avg = N ? h.reduce((s, x) => s + x.t, 0) / N : 0;
+  const xp = G.ok * 5 + G.maxc * 3 + (acc === 1 && N >= 5 ? 20 : 0);
+  const b = ls.get(), nb = G.score > b;
+  if (nb) ls.set(G.score);
+
+  const c = (l, v) => `<div class="card"><small class="text-slate-400 font-semibold text-xs tracking-wider uppercase">${l}</small><div class="text-2xl font-bold mt-1">${v}</div></div>`;
+
+  $('#res').innerHTML = `
+    <div class="text-center my-4">
+      <div class="text-5xl mb-2">${acc >= 0.8 ? '🏆' : acc >= 0.5 ? '🎉' : '💪'}</div>
+      <h2 class="text-3xl font-extrabold">${nb ? 'Rekor Baru!' : 'Sesi Selesai'}</h2>
+      <div class="text-6xl font-extrabold my-3 text-amber-400 font-mono tracking-tight">${G.score}<span class="text-xl text-slate-400 font-normal"> poin</span></div>
+    </div>
+    <div class="grid grid-cols-2 gap-3 my-5">
+      ${c('XP Didapat', '+' + xp)}
+      ${c('Akurasi', Math.round(acc * 100) + '%')}
+      ${c('Total Waktu', fm(el))}
+      ${c('Rata-rata Per Soal', avg.toFixed(1) + ' dtk')}
+      ${c('Benar / Salah', G.ok + ' / ' + (N - G.ok))}
+      ${c('Combo Terbaik', '×' + G.maxc)}
+    </div>
+    <p class="text-center text-slate-400 text-sm mb-6">Rekor Tertinggi: ${Math.max(b, G.score)} Poin</p>
+    <div class="grid gap-3">
+      <button class="btn py-4 text-lg" id="again">🔁 Main Lagi (Pengaturan Sama)</button>
+      <button class="btn alt py-3 text-base" id="rv">📖 Review Soal</button>
+      <button class="btn alt py-3 text-base" id="menu">⚙️ Kembali ke Menu Kustomisasi</button>
+    </div>
+  `;
+
+  $('#again').onclick = start;
+  $('#menu').onclick = () => { playSound('click'); draw(); show('home'); };
+  $('#rv').onclick = () => { playSound('click'); review(); };
+  show('res');
+}
+
+function review() {
+  $('#rev').innerHTML = `
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-bold">Review Soal</h2>
+      <button class="chip" id="bk">← Kembali</button>
+    </div>
+    ` + (G.hist.length ? G.hist.map((x, i) => `
+      <div class="card mb-3 border-l-4 ${x.ok ? 'border-l-emerald-500' : 'border-l-rose-500'}">
+        <div class="flex justify-between text-sm mb-1">
+          <span class="${x.ok ? 'text-emerald-400' : 'text-rose-400'} font-bold">${x.ok ? '✔ Benar' : '✘ Salah'}, ${x.t.toFixed(1)} dtk</span>
+          <span class="text-slate-400">Soal ${i + 1}</span>
+        </div>
+        <div class="text-xl font-bold my-1 text-slate-100">${x.h}</div>
+        <div class="text-sm text-slate-300">Jawabanmu: <b class="${x.ok ? 'text-emerald-300' : 'text-rose-300'}">${x.ua}</b> · Jawaban Benar: <b class="text-emerald-400">${x.ca}</b></div>
+        <p class="text-slate-400 text-xs mt-2 pt-2 border-t border-slate-700/40">${x.ex}</p>
+      </div>
+    `).join('') : '<p class="text-slate-400">Belum ada soal yang dijawab.</p>');
+
+  $('#bk').onclick = () => { playSound('click'); show('res'); };
+  show('res');
+}
+
+/* Initial Render */
+draw();
+</script>
+</body>
+</html>
